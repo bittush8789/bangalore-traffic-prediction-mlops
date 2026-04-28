@@ -88,8 +88,25 @@ docker build -t traffic-predictor .
 docker run -p 8000:8000 traffic-predictor
 ```
 
-### 3. Kubernetes & ArgoCD Deployment
-1. Ensure `kubectl` is connected to your cluster.
+### 3. Local Kubernetes with Kind
+For local MLOps testing, you can use **Kind** (Kubernetes in Docker):
+```bash
+# 1. Install Kind (if not installed)
+# choco install kind (Windows) or brew install kind (macOS)
+
+# 2. Create a local cluster
+kind create cluster --name blr-traffic-cluster
+
+# 3. Load your local Docker image into Kind
+kind load docker-image traffic-predictor:latest --name blr-traffic-cluster
+
+# 4. Apply Kubernetes manifests
+kubectl apply -f k8s/serviceaccount.yaml
+kubectl apply -f k8s/inference.yaml
+```
+
+### 4. Production Kubernetes & ArgoCD Deployment
+1. Ensure `kubectl` is connected to your EKS/GKE cluster.
 2. Install ArgoCD and apply the application manifest:
    ```bash
    kubectl apply -f argocd/application.yaml
