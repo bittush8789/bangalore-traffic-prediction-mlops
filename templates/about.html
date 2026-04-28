@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - Bangalore Traffic AI</title>
+    <meta name="description" content="About the Bangalore Traffic Prediction & Smart Route Intelligence System.">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#g1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg>
+        BLR Traffic AI
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/predictor">Predictor</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/map">Live Map</a></li>
+        <li><a href="/business">Business</a></li>
+        <li><a href="/about">About</a></li>
+    </ul>
+</nav>
+
+<div class="page-container section">
+    <h1>ℹ️ About This <span class="gradient">Project</span></h1>
+    <p class="subtitle">An AI-powered Smart Mobility Solution for Bengaluru's traffic challenges.</p>
+
+    <div class="card" style="margin-bottom:24px;">
+        <h3>🎯 Project Overview</h3>
+        <p style="margin-top:8px;">The <strong>Bangalore Traffic Prediction & Smart Route Intelligence System</strong> is an end-to-end machine learning web application that predicts traffic congestion, estimates travel times, recommends optimal departure times, and suggests the best routes across 20 key Bangalore locations.</p>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+        <h3>📊 Dataset</h3>
+        <p style="margin-top:8px;">We generated a synthetic dataset of <strong>300,000+ records</strong> spanning 3 years (2023–2025) with realistic Bangalore traffic patterns including:</p>
+        <ul style="margin-top:8px;padding-left:20px;color:var(--text-secondary);">
+            <li>Morning & evening peak hour patterns</li>
+            <li>IT corridor (Whitefield, Electronic City, Manyata) rush</li>
+            <li>Weather impact (monsoon, fog, thunderstorm)</li>
+            <li>Event-driven traffic (IPL, concerts, festivals)</li>
+            <li>Accident and construction delays</li>
+            <li>Weekend vs weekday differences</li>
+        </ul>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+        <h3>🧠 Machine Learning Models</h3>
+        <p style="margin-top:8px;"><strong>Classification (Congestion Level):</strong></p>
+        <ul style="padding-left:20px;color:var(--text-secondary);">
+            <li>Random Forest, XGBoost, Gradient Boosting, Logistic Regression</li>
+        </ul>
+        <p style="margin-top:12px;"><strong>Regression (Travel Time):</strong></p>
+        <ul style="padding-left:20px;color:var(--text-secondary);">
+            <li>Random Forest, XGBoost, Gradient Boosting, Linear Regression</li>
+        </ul>
+        <p style="margin-top:12px;"><strong>Forecasting (Traffic Index):</strong></p>
+        <ul style="padding-left:20px;color:var(--text-secondary);">
+            <li>XGBoost Time-Series with lag features</li>
+        </ul>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+        <h3>🛠️ Tech Stack</h3>
+        <div class="tech-stack">
+            <span class="tech-tag">Python</span>
+            <span class="tech-tag">Flask</span>
+            <span class="tech-tag">Scikit-learn</span>
+            <span class="tech-tag">XGBoost</span>
+            <span class="tech-tag">Pandas</span>
+            <span class="tech-tag">NumPy</span>
+            <span class="tech-tag">HTML5</span>
+            <span class="tech-tag">CSS3</span>
+            <span class="tech-tag">JavaScript</span>
+            <span class="tech-tag">Chart.js</span>
+            <span class="tech-tag">Leaflet.js</span>
+            <span class="tech-tag">OpenStreetMap</span>
+        </div>
+    </div>
+
+    {% if training_summary %}
+    <div class="card" style="margin-bottom:24px;">
+        <h3>📈 Model Performance</h3>
+        {% if training_summary.classification %}
+        <p style="margin-top:12px;font-weight:600;">Classification Results:</p>
+        <table class="forecast-table" style="margin-top:8px;">
+            <thead><tr><th>Model</th><th>Accuracy</th><th>F1</th></tr></thead>
+            <tbody>
+            {% for name, metrics in training_summary.classification.items() %}
+                <tr><td>{{ name }}</td><td>{{ metrics.accuracy }}</td><td>{{ metrics.f1_score }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+        {% if training_summary.regression %}
+        <p style="margin-top:16px;font-weight:600;">Regression Results:</p>
+        <table class="forecast-table" style="margin-top:8px;">
+            <thead><tr><th>Model</th><th>R²</th><th>MAE</th></tr></thead>
+            <tbody>
+            {% for name, metrics in training_summary.regression.items() %}
+                <tr><td>{{ name }}</td><td>{{ metrics.r2_score }}</td><td>{{ metrics.mae }}</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <div class="card" style="margin-bottom:24px;">
+        <h3>🚀 Future Improvements</h3>
+        <ul style="padding-left:20px;color:var(--text-secondary);margin-top:8px;">
+            <li>Integration with real-time traffic APIs</li>
+            <li>LSTM/Transformer models for time-series</li>
+            <li>Multi-modal transport recommendations</li>
+            <li>Mobile app with push notifications</li>
+            <li>Community-reported incident integration</li>
+            <li>Carbon emission tracking per route</li>
+        </ul>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>© 2024 Bangalore Traffic AI | About Project</p>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>

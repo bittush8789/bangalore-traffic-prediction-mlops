@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Traffic Map - Bangalore Traffic AI</title>
+    <meta name="description" content="Interactive Bangalore traffic map with congestion zones and route markers.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div id="loader" class="loader-overlay"><div class="spinner"></div></div>
+
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#g1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg>
+        BLR Traffic AI
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/predictor">Predictor</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/map">Live Map</a></li>
+        <li><a href="/business">Business</a></li>
+        <li><a href="/about">About</a></li>
+    </ul>
+</nav>
+
+<div class="map-container section">
+    <div class="section-header">
+        <h2>🗺️ Bangalore Traffic Map</h2>
+        <p>Interactive map showing traffic zones, congestion circles, and route markers across 20 key locations.</p>
+    </div>
+    <div class="map-controls">
+        <span class="congestion-badge low" style="font-size:0.75rem;padding:4px 12px;">🟢 Low</span>
+        <span class="congestion-badge medium" style="font-size:0.75rem;padding:4px 12px;">🟡 Medium</span>
+        <span class="congestion-badge high" style="font-size:0.75rem;padding:4px 12px;">🔴 High</span>
+        <span class="congestion-badge severe" style="font-size:0.75rem;padding:4px 12px;">🟣 Severe</span>
+    </div>
+    <div id="traffic-map"></div>
+</div>
+
+<footer class="footer">
+    <p>© 2024 Bangalore Traffic AI | Powered by Leaflet.js & OpenStreetMap</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/app.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Handle locations data passed from Flask
+        const rawData = {{ locations_data | safe }};
+        // If it's already an object (rendered by safe), use it, otherwise parse it
+        const locData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+        initTrafficMap(locData);
+    });
+</script>
+</body>
+</html>

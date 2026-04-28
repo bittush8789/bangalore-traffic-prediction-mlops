@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Traffic Predictor - Bangalore Traffic AI</title>
+    <meta name="description" content="Predict Bangalore traffic congestion, ETA, and find best routes using AI.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+<div id="loader" class="loader-overlay"><div class="spinner"></div></div>
+
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#g1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg>
+        BLR Traffic AI
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+        <li><a href="/">Home</a></li>
+        <li><a href="/predictor">Predictor</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/map">Live Map</a></li>
+        <li><a href="/business">Business</a></li>
+        <li><a href="/about">About</a></li>
+    </ul>
+</nav>
+
+<div class="predictor-container section">
+    <div class="section-header">
+        <h2>🔮 Traffic Predictor</h2>
+        <p>Enter your route details to get AI-powered congestion predictions, ETA, and smart route suggestions.</p>
+    </div>
+
+    <form id="predict-form" class="predict-form" onsubmit="submitPrediction(event)">
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="source">📍 Source</label>
+                <select name="source" id="source" required>
+                    {% for loc in locations %}<option value="{{ loc }}">{{ loc }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="destination">📍 Destination</label>
+                <select name="destination" id="destination" required>
+                    {% for loc in locations %}<option value="{{ loc }}" {% if loop.index == 3 %}selected{% endif %}>{{ loc }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="hour">🕐 Hour (0-23)</label>
+                <input type="number" name="hour" id="hour" min="0" max="23" value="9">
+            </div>
+            <div class="form-group">
+                <label for="month">📅 Month (1-12)</label>
+                <input type="number" name="month" id="month" min="1" max="12" value="6">
+            </div>
+            <div class="form-group">
+                <label for="weather">🌤️ Weather</label>
+                <select name="weather" id="weather">
+                    {% for w in weathers %}<option value="{{ w }}">{{ w }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="rainfall">🌧️ Rainfall (mm)</label>
+                <input type="number" name="rainfall" id="rainfall" min="0" max="100" step="0.5" value="0">
+            </div>
+            <div class="form-group">
+                <label for="temperature">🌡️ Temperature (°C)</label>
+                <input type="number" name="temperature" id="temperature" min="10" max="45" value="28">
+            </div>
+            <div class="form-group">
+                <label for="humidity">💧 Humidity (%)</label>
+                <input type="number" name="humidity" id="humidity" min="20" max="100" value="65">
+            </div>
+        </div>
+        <div style="margin-top:20px;">
+            <div class="check-group">
+                <label><input type="checkbox" name="is_holiday" value="1"> 🏖️ Holiday</label>
+                <label><input type="checkbox" name="event_flag" value="1"> 🎉 Event</label>
+                <label><input type="checkbox" name="accident_flag" value="1"> 🚗 Accident</label>
+                <label><input type="checkbox" name="construction_flag" value="1"> 🚧 Construction</label>
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary predict-btn">🔮 Predict Traffic</button>
+    </form>
+
+    <!-- Results -->
+    <div id="results-panel" class="results-panel">
+        <div class="result-header">
+            <h3>Prediction Results</h3>
+            <span id="congestion-badge" class="congestion-badge">—</span>
+            <span style="color:var(--text-secondary);font-size:0.85rem;">Confidence: <strong id="confidence">—</strong></span>
+        </div>
+        <div class="result-grid">
+            <div class="result-card">
+                <h4>Estimated Travel Time</h4>
+                <div class="result-value" id="eta-value">—</div>
+                <div class="result-sub">Door to door estimate</div>
+            </div>
+            <div class="result-card">
+                <h4>Distance</h4>
+                <div class="result-value" id="distance-value">—</div>
+                <div class="result-sub">Road distance</div>
+            </div>
+            <div class="result-card">
+                <h4>Avg Speed</h4>
+                <div class="result-value" id="speed-value">—</div>
+                <div class="result-sub">Expected average</div>
+            </div>
+            <div class="result-card">
+                <h4>Traffic Index</h4>
+                <div class="result-value" id="traffic-index-value">—</div>
+                <div class="result-sub">0 (free) — 100 (jammed)</div>
+            </div>
+        </div>
+
+        <!-- Best Departure -->
+        <div style="margin-top:24px;">
+            <h3 style="margin-bottom:12px;">🕐 Best Departure Time</h3>
+            <div class="result-card" style="display:flex;align-items:center;gap:20px;">
+                <div>
+                    <div class="result-value" id="best-dep-value">—</div>
+                    <div class="result-sub" id="best-dep-traffic">—</div>
+                </div>
+                <div style="color:var(--text-secondary);font-size:0.9rem;">
+                    Leave at this time for the least congestion on your route.
+                </div>
+            </div>
+        </div>
+
+        <!-- Routes -->
+        <div style="margin-top:24px;">
+            <h3 style="margin-bottom:12px;">🗺️ Route Suggestions</h3>
+            <div id="routes-container"></div>
+        </div>
+
+        <!-- Forecast -->
+        <div style="margin-top:24px;">
+            <h3 style="margin-bottom:12px;">📈 Hourly Forecast</h3>
+            <div class="result-card">
+                <table class="forecast-table">
+                    <thead><tr><th>Time</th><th>Traffic Index</th><th>Level</th></tr></thead>
+                    <tbody id="forecast-body"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Mini Map -->
+        <div style="margin-top:24px;">
+            <h3 style="margin-bottom:12px;">🗺️ Route Map</h3>
+            <div id="result-map"></div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <p>© 2024 Bangalore Traffic AI | AI-Powered Smart Mobility</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>

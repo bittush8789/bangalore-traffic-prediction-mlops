@@ -1,0 +1,10 @@
+flask==3.1.1
+pandas==2.2.3
+numpy==1.26.4
+scikit-learn==1.6.1
+xgboost==2.1.4
+catboost==1.2.7
+prophet==1.1.6
+matplotlib==3.10.1
+seaborn==0.13.2
+joblib==1.4.2

@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bangalore Traffic AI - Smart Route Intelligence System</title>
+    <meta name="description" content="AI-powered traffic prediction system for Bangalore. Predict congestion, get ETA estimates, and find the best routes using machine learning.">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+</head>
+<body>
+<div class="bg-mesh"></div>
+
+<!-- Navbar -->
+<nav class="navbar">
+    <a href="/" class="nav-brand">
+        <svg viewBox="0 0 32 32" fill="none"><circle cx="16" cy="16" r="14" stroke="url(#g1)" stroke-width="2.5"/><path d="M10 16h12M16 10v12" stroke="url(#g1)" stroke-width="2" stroke-linecap="round"/><defs><linearGradient id="g1" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#3b82f6"/><stop offset="1" stop-color="#8b5cf6"/></linearGradient></defs></svg>
+        BLR Traffic AI
+    </a>
+    <button class="nav-toggle" aria-label="Toggle menu">☰</button>
+    <ul class="nav-links">
+        <li><a href="/" class="active">Home</a></li>
+        <li><a href="/predictor">Predictor</a></li>
+        <li><a href="/dashboard">Dashboard</a></li>
+        <li><a href="/map">Live Map</a></li>
+        <li><a href="/business">Business</a></li>
+        <li><a href="/about">About</a></li>
+    </ul>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+    <div class="hero-content">
+        <div class="hero-badge"><span class="dot"></span> AI-Powered Traffic Intelligence</div>
+        <h1>Beat Bangalore's<br><span class="gradient">Traffic Chaos</span></h1>
+        <p>Predict congestion levels, get accurate ETAs, find optimal departure times, and discover the smartest routes — all powered by machine learning trained on 300K+ data points.</p>
+        <div class="btn-group">
+            <a href="/predictor" class="btn btn-primary">🚀 Start Predicting</a>
+            <a href="/dashboard" class="btn btn-outline">📊 View Analytics</a>
+        </div>
+    </div>
+</section>
+
+<!-- Stats -->
+<div class="stats-bar">
+    <div class="stat-card">
+        <div class="stat-value" data-count="300000">0</div>
+        <div class="stat-label">Training Data Points</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" data-count="20">0</div>
+        <div class="stat-label">Bangalore Zones</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" data-count="10">0</div>
+        <div class="stat-label">ML Models Trained</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-value" data-count="95">0</div>
+        <div class="stat-label">Prediction Accuracy %</div>
+    </div>
+</div>
+
+<!-- Features -->
+<section class="section" id="features">
+    <div class="section-header">
+        <h2>Intelligent Traffic Features</h2>
+        <p>Powered by advanced ML models to make your Bangalore commute smarter and faster.</p>
+    </div>
+    <div class="grid-3">
+        <div class="card">
+            <div class="card-icon blue">🔮</div>
+            <h3>Congestion Prediction</h3>
+            <p>Predict traffic levels for the next 15 min, 30 min, and 1 hour using Random Forest, XGBoost, and Gradient Boosting models.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon cyan">⏱️</div>
+            <h3>ETA Estimator</h3>
+            <p>Get accurate estimated travel time between any two Bangalore locations considering weather, time, and traffic conditions.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon purple">🕐</div>
+            <h3>Best Departure Time</h3>
+            <p>Find the optimal time to leave for minimum congestion. Plan your commute to avoid peak hours intelligently.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon green">🗺️</div>
+            <h3>Smart Route Planner</h3>
+            <p>Compare Highway, Main Road, and Inner Road routes with real-time risk scores and congestion forecasts.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon orange">🌧️</div>
+            <h3>Weather Impact Analysis</h3>
+            <p>Understand how rain, fog, and storms affect Bangalore traffic. Get weather-adjusted predictions and alerts.</p>
+        </div>
+        <div class="card">
+            <div class="card-icon pink">📊</div>
+            <h3>Analytics Dashboard</h3>
+            <p>Interactive charts showing peak hours, busiest routes, weather correlations, and congestion trends across the city.</p>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="section" style="background: var(--bg-secondary);">
+    <div class="section-header">
+        <h2>How It Works</h2>
+        <p>From raw data to real-time predictions in three simple steps.</p>
+    </div>
+    <div class="grid-3">
+        <div class="card" style="text-align:center;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">📡</div>
+            <h3>1. Data Collection</h3>
+            <p>300K+ synthetic records mimicking 3 years of Bangalore traffic patterns including weather, events, and peak hours.</p>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">🧠</div>
+            <h3>2. ML Training</h3>
+            <p>10+ models trained with advanced feature engineering — cyclical encoding, risk scores, delay ratios, and weather impact.</p>
+        </div>
+        <div class="card" style="text-align:center;">
+            <div style="font-size:2.5rem;margin-bottom:12px;">🎯</div>
+            <h3>3. Smart Predictions</h3>
+            <p>Real-time congestion forecasts, ETA estimates, departure recommendations, and route suggestions via Flask API.</p>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section" style="text-align:center;">
+    <h2 style="font-size:2rem;margin-bottom:16px;">Ready to Beat the Traffic?</h2>
+    <p style="color:var(--text-secondary);margin-bottom:28px;">Try our AI predictor now and never get stuck in Bangalore traffic again.</p>
+    <a href="/predictor" class="btn btn-primary">🚀 Launch Predictor</a>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+    <p>© 2024 Bangalore Traffic AI | Built with Flask, Scikit-learn, XGBoost & Leaflet.js</p>
+    <p style="margin-top:4px;">An AI-powered Smart Mobility Solution for Bengaluru</p>
+</footer>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
