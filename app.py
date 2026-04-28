@@ -1,130 +1,123 @@
-"""
-Bangalore Traffic Prediction & Smart Route Intelligence System
-Flask Backend Application
-"""
-import os, sys, json
-from datetime import datetime
-from flask import Flask, render_template, request, jsonify
+from fastapi import FastAPI, HTTPException
+from pydantic import BaseModel
+import joblib
+import pandas as pd
 import numpy as np
-import warnings
-warnings.filterwarnings("ignore")
+import os
+import json
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
+from fastapi.responses import Response
+import time
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from src.utils import LOCATION_NAMES, WEATHER_OPTIONS, LOCATIONS
-from src.predict import load_models, predict_congestion, predict_eta, get_best_departure, get_route_suggestions
-from src.forecast import forecast_traffic, get_analytics_data
+app = FastAPI(title="Bangalore Traffic Prediction API", version="1.0.0")
 
-class NumpyEncoder(json.JSONEncoder):
-    def default(self, obj):
-        if isinstance(obj, np.integer):
-            return int(obj)
-        if isinstance(obj, np.floating):
-            return float(obj)
-        if isinstance(obj, np.ndarray):
-            return obj.tolist()
-        return super(NumpyEncoder, self).default(obj)
+# Load model and encoders
+MODEL_PATH = "models/model.pkl"
+ENCODER_PATH = "models/encoders.pkl"
+FEATURES_PATH = "models/features.json"
 
-app = Flask(__name__)
-app.json.cls = NumpyEncoder
-app.config["SECRET_KEY"] = "blr-traffic-ai-2024"
+model = None
+encoders = None
+features = None
 
-# Load models at startup
-print("Loading trained models...")
-MODELS = load_models()
-if MODELS:
-    print("Models loaded successfully!")
-else:
-    print("WARNING: Models not loaded. Train models first.")
+def load_artifacts():
+    global model, encoders, features
+    if os.path.exists(MODEL_PATH):
+        model = joblib.load(MODEL_PATH)
+    if os.path.exists(ENCODER_PATH):
+        encoders = joblib.load(ENCODER_PATH)
+    if os.path.exists(FEATURES_PATH):
+        with open(FEATURES_PATH, "r") as f:
+            features = json.load(f)
 
+load_artifacts()
 
-@app.route("/")
-def index():
-    return render_template("index.html", locations=LOCATION_NAMES)
+# Prometheus Metrics
+PREDICTION_COUNTER = Counter("traffic_predictions_total", "Total traffic predictions made")
+LATENCY_HISTOGRAM = Histogram("prediction_latency_seconds", "Latency of traffic predictions")
 
+class TrafficInput(BaseModel):
+    area_name: str
+    hour: int
+    day_of_week: str
+    holiday: int
+    weather: str
+    rainfall: float
+    road_type: str
+    event_nearby: int
+    accident_reported: int
+    traffic_volume: int
+    route_distance: float
 
-@app.route("/predictor")
-def predictor():
-    return render_template("predictor.html", locations=LOCATION_NAMES, weathers=WEATHER_OPTIONS)
+@app.get("/")
+def home():
+    return {"message": "Bangalore Traffic Prediction API is running!"}
 
+@app.get("/health")
+def health():
+    if model is None or encoders is None:
+        raise HTTPException(status_code=503, detail="Model artifacts not loaded")
+    return {"status": "healthy", "model_loaded": True}
 
-@app.route("/predict", methods=["POST"])
-def predict():
+@app.get("/metrics")
+def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+@app.post("/predict")
+def predict(data: TrafficInput):
+    start_time = time.time()
+    
+    if model is None or encoders is None:
+        raise HTTPException(status_code=503, detail="Model not initialized")
+    
     try:
-        data = request.get_json() if request.is_json else request.form
-        now = datetime.now()
-        hour = int(data.get("hour", now.hour))
-        month = int(data.get("month", now.month))
-        dow = now.weekday()
-        params = {
-            "source": data.get("source", "Koramangala"),
-            "destination": data.get("destination", "Whitefield"),
-            "hour": hour, "month": month, "day_of_week": dow,
-            "is_weekend": 1 if dow >= 5 else 0,
-            "is_holiday": int(data.get("is_holiday", 0)),
-            "weather": data.get("weather", "Clear"),
-            "rainfall_mm": float(data.get("rainfall", 0)),
-            "temperature": float(data.get("temperature", 28)),
-            "humidity": float(data.get("humidity", 65)),
-            "event_flag": int(data.get("event_flag", 0)),
-            "accident_flag": int(data.get("accident_flag", 0)),
-            "construction_flag": int(data.get("construction_flag", 0)),
+        # Prepare data
+        input_data = data.model_dump()
+        df = pd.DataFrame([input_data])
+        
+        # Apply encoding
+        for col, le in encoders.items():
+            if col in df.columns:
+                # Handle unseen labels by defaulting to 0 or first class
+                try:
+                    df[col] = le.transform(df[col])
+                except:
+                    df[col] = 0
+        
+        # Ensure feature order matches training
+        X = df[features]
+        
+        # Prediction
+        prediction_idx = model.predict(X)[0]
+        prediction_label = encoders['target'].inverse_transform([prediction_idx])[0]
+        
+        # Probability if available
+        confidence = 0.0
+        if hasattr(model, "predict_proba"):
+            confidence = float(np.max(model.predict_proba(X)[0]))
+        
+        # Estimate travel time based on congestion (simple logic for demo)
+        # In a real scenario, this would be another regression model
+        base_speed = 40
+        if prediction_label == "Severe": base_speed = 10
+        elif prediction_label == "High": base_speed = 20
+        elif prediction_label == "Medium": base_speed = 30
+        
+        estimated_travel_time = (data.route_distance / base_speed) * 60
+        
+        latency = time.time() - start_time
+        LATENCY_HISTOGRAM.observe(latency)
+        PREDICTION_COUNTER.inc()
+        
+        return {
+            "congestion_level": prediction_label,
+            "confidence": round(confidence, 2),
+            "estimated_travel_time_minutes": round(estimated_travel_time, 2),
+            "route_suggestion": "Take alternative route" if prediction_label in ["High", "Severe"] else "Optimal route selected"
         }
-        cong = predict_congestion(MODELS, params)
-        eta = predict_eta(MODELS, params)
-        dep = get_best_departure(MODELS, params)
-        routes = get_route_suggestions(MODELS, params)
-        fc = forecast_traffic(MODELS, {**params, "current_traffic_index": cong["traffic_index"]})
-        src_coords = LOCATIONS.get(params["source"], (12.97, 77.59))
-        dst_coords = LOCATIONS.get(params["destination"], (12.97, 77.69))
-        result = {
-            "congestion": cong, "eta": eta, "departure": dep, "routes": routes,
-            "forecast": fc, "source_coords": list(src_coords), "dest_coords": list(dst_coords),
-            "source": params["source"], "destination": params["destination"],
-        }
-        return jsonify({"status": "success", "data": result})
     except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/dashboard")
-def dashboard():
-    return render_template("dashboard.html")
-
-
-@app.route("/api/analytics")
-def analytics():
-    try:
-        data = get_analytics_data()
-        return jsonify({"status": "success", "data": data})
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
-
-@app.route("/map")
-def map_page():
-    return render_template("map.html", locations=LOCATION_NAMES, locations_data=json.dumps(LOCATIONS))
-
-
-@app.route("/api/locations")
-def api_locations():
-    return jsonify({"locations": LOCATIONS, "names": LOCATION_NAMES})
-
-
-@app.route("/business")
-def business():
-    return render_template("business.html")
-
-
-@app.route("/about")
-def about():
-    try:
-        summary_path = os.path.join("models", "training_summary.json")
-        with open(summary_path) as f:
-            training_summary = json.load(f)
-    except:
-        training_summary = {}
-    return render_template("about.html", training_summary=training_summary)
-
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)

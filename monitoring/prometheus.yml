@@ -1,0 +1,16 @@
+global:
+  scrape_interval: 15s
+
+scrape_configs:
+  - job_name: 'traffic-prediction-api'
+    static_configs:
+      - targets: ['app-service:8000']
+    metrics_path: '/metrics'
+
+  - job_name: 'kserve-inference'
+    kubernetes_sd_configs:
+      - role: pod
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_serving_kserve_io_inferenceservice]
+        action: keep
+        regex: bangalore-traffic-predictor

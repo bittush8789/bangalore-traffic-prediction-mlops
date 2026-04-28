@@ -1,0 +1,17 @@
+apiVersion: "serving.kserve.io/v1beta1"
+kind: "InferenceService"
+metadata:
+  name: "bangalore-traffic-predictor"
+  namespace: "ml-deploy"
+spec:
+  predictor:
+    serviceAccountName: "s3-sa"
+    sklearn:
+      storageUri: "s3://your-bucket-name/models/model.pkl"
+      resources:
+        requests:
+          cpu: "1"
+          memory: "2Gi"
+        limits:
+          cpu: "2"
+          memory: "4Gi"

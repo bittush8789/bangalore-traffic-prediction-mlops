@@ -1,0 +1,16 @@
+stages:
+  generate:
+    cmd: python generate_data.py
+    deps:
+    - generate_data.py
+    outs:
+    - data/traffic_data.csv
+  train:
+    cmd: python train.py
+    deps:
+    - data/traffic_data.csv
+    - train.py
+    outs:
+    - models/model.pkl
+    - models/encoders.pkl
+    - models/features.json

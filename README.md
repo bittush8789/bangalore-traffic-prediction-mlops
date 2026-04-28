@@ -1,150 +1,129 @@
-# 🚦 Bangalore Traffic AI: Smart Urban Mobility Platform
+# 🚦 Bangalore Traffic Prediction MLOps Platform
 
-[![Python 3.9+](https://img.shields.io/badge/Python-3.9+-3776AB?style=for-the-badge&logo=python&logoColor=white)](https://www.python.org/)
-[![Flask 3.1.1](https://img.shields.io/badge/Flask-3.1.1-000000?style=for-the-badge&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
-[![XGBoost](https://img.shields.io/badge/ML-XGBoost-EE4C2C?style=for-the-badge&logo=XGBoost&logoColor=white)](https://xgboost.ai/)
-[![Leaflet](https://img.shields.io/badge/Maps-Leaflet.js-199900?style=for-the-badge&logo=leaflet&logoColor=white)](https://leafletjs.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![MLOps Pipeline](https://github.com/bittush8789/bangalore-traffic-prediction-mlops/actions/workflows/mlops-pipeline.yml/badge.svg)](https://github.com/bittush8789/bangalore-traffic-prediction-mlops/actions/workflows/mlops-pipeline.yml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.115.0-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-Production-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-EF7B4D?style=for-the-badge&logo=argo&logoColor=white)](https://argoproj.github.io/argo-cd/)
 
-An **AI-driven, production-grade traffic intelligence platform** designed to solve the urban mobility crisis in Bangalore. This system leverages advanced Machine Learning (XGBoost, Scikit-Learn) to provide real-time congestion insights, accurate ETA estimations, and smart route recommendations.
-
----
-
-## 🌟 Key Features
-
-### 🧠 AI Core
-- **Congestion Predictor**: Classification of traffic levels (Low, Medium, High, Severe) with >90% confidence.
-- **Smart ETA Estimator**: Real-time travel time calculation adjusted for weather, distance, and road type.
-- **Dynamic Forecasting**: Multi-hour traffic index forecasting using lag-feature-based XGBoost models.
-- **Optimal Departure Suggester**: Suggests the best time to leave to minimize commute stress.
-
-### 📊 Visualization & UI
-- **Live Analytics Dashboard**: Auto-refreshing charts (every 30s) showing hourly trends, weather impact, and area-wise traffic.
-- **Digital Twin Map**: Interactive geospatial visualization of Bangalore's 20+ key hubs using Leaflet.js.
-- **Premium Aesthetics**: A sleek, glassmorphism-inspired dark mode interface with smooth transitions and micro-animations.
-
-### 🏗️ MLOps Pipeline
-- **High-Fidelity Simulation**: Synthetic data generator producing 300,000+ realistic traffic records.
-- **Robust Feature Engineering**: Cyclical time encoding, route risk scoring, and precipitation impact matrices.
-- **Fault-Tolerant Inference**: Independent model loading with automatic fallback mechanisms.
+A production-grade, end-to-end MLOps platform for real-time Bangalore traffic intelligence. This project demonstrates a complete CI/CD/CT (Continuous Training) lifecycle using industry-standard tools like Kubernetes, KServe, ArgoCD, and AWS.
 
 ---
 
-## 🏗️ System Architecture
+## 🏗️ Architecture Flow
 
-```mermaid
-graph TD
-    A[Synthetic Data Generator] -->|300K+ Records| B[(CSV Data Store)]
-    B --> C[Preprocessing & Engineering]
-    C -->|Feature Vectors| D{Model Training Engine}
-    D --> E[Congestion Classifier]
-    D --> F[ETA Regressor]
-    D --> G[Traffic Forecaster]
-    E & F & G --> H[Model Registry]
-    H --> I[Flask Backend API]
-    I --> J[Auto-Refresh Frontend]
-    J --> K[Actionable Insights]
-```
-
----
-
-## 🚀 Installation & Setup
-
-### 1. Environment Configuration
-```bash
-# Clone the repository
-git clone https://github.com/your-username/banglore-traffice.git
-cd banglore-traffice
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### 2. Data & Model Pipeline
-The system requires pre-trained models. Run the following in order:
-```bash
-# 1. Generate the dataset
-python src/data_generator.py
-
-# 2. Preprocess & Feature Engineering
-python src/preprocess.py
-
-# 3. Train all models
-python src/train.py
-```
-
-### 3. Launching the App
-```bash
-python app.py
-```
-Open `http://127.0.0.1:5000` in your browser.
-
----
-
-## 📁 Project Structure
-
-| File/Folder | Description |
-| :--- | :--- |
-| `app.py` | Flask server, API endpoints, and custom JSON serialization. |
-| `src/` | **The Brain**: Data generation, training, and inference logic. |
-| `static/` | CSS3 (Premium styles) and JS (Chart.js & Leaflet logic). |
-| `templates/` | HTML5 semantic templates for all pages. |
-| `data/` | CSV datasets (Raw, Cleaned, Engineered). |
-| `models/` | Serialized `.pkl` models and feature mapping JSONs. |
-
----
-
-## 📡 API Reference
-
-### Get Analytics Data
-`GET /api/analytics`
-- **Returns**: Real-time sampled statistics for the dashboard.
-- **Features**: Auto-refreshes every 30s in the UI.
-
-### Predict Traffic
-`POST /predict`
-- **Payload**: `{ source, destination, hour, weather, ... }`
-- **Returns**: Congestion level, ETA, recommended route, and hourly forecast.
-
----
-
-## 🧠 Model Specifications
-
-| Model | Algorithm | Input Features |
-| :--- | :--- | :--- |
-| **Congestion** | XGBoost Classifier | 35+ (Time, Weather, Distance, Risk Score) |
-| **ETA** | RandomForest Regressor | Distance, Avg Speed, Road Capacity, Time |
-| **Forecast** | XGBoost (Lagged) | Lagged Traffic Indices, Rolling Mean, Hour-Sin/Cos |
+1. **Development**: Developer pushes code to GitHub.
+2. **CI/CD Pipeline**: GitHub Actions triggers:
+   - Environment setup & Dependency installation.
+   - **DVC Pipeline**: Synthetic data generation (50k+ rows) & Feature Engineering.
+   - **Model Training**: XGBoost/LightGBM training with **MLflow** experiment tracking.
+   - **Artifact Storage**: Serialized models (.pkl) uploaded to **AWS S3**.
+3. **Containerization**: Docker image built and pushed to **Amazon ECR**.
+4. **GitOps Deployment**:
+   - Pipeline automatically updates `k8s/inference.yaml` with the latest S3 model URI.
+   - **ArgoCD** detects the Git change and synchronizes the state to the Kubernetes cluster.
+5. **Serving**: **KServe** deploys the model as a scalable InferenceService.
+6. **Monitoring**: **Prometheus** scrapes metrics from the FastAPI app, visualized in **Grafana**.
 
 ---
 
 ## 🛠️ Tech Stack
 
-- **Backend**: Flask (Python 3.13)
-- **Frontend**: Vanilla JS, Leaflet.js, Chart.js 4.4
-- **ML Engine**: Scikit-Learn, XGBoost, Pandas, NumPy
-- **Styling**: CSS3 (Glassmorphism, Flexbox, Grid)
+- **Inference**: FastAPI, Uvicorn, Pydantic
+- **Machine Learning**: Scikit-learn, XGBoost, LightGBM, Pandas, NumPy
+- **Orchestration**: Kubernetes, KServe, ArgoCD
+- **Cloud Infrastructure**: AWS (S3, ECR, EKS)
+- **Data/Model Management**: DVC, MLflow, Joblib
+- **CI/CD**: GitHub Actions, Docker
+- **Observability**: Prometheus, Grafana
+
+---
+
+## 📁 Project Structure
+
+```text
+bangalore-traffic-prediction-mlops/
+│── .github/workflows/       # CI/CD pipeline definitions
+│── app.py                   # FastAPI Production Server
+│── train.py                 # Model training & MLflow logic
+│── generate_data.py         # Synthetic data engine
+│── requirements.txt         # Production dependencies
+│── Dockerfile               # Container definition
+│── dvc.yaml                 # Data pipeline versioning
+│── models/                  # Local model artifacts (ignored by git)
+│── data/                    # Datasets (ignored by git)
+│── templates/               # Glassmorphism UI (HTML)
+│── static/                  # UI Assets (CSS/JS)
+│── k8s/                     # Kubernetes Manifests (KServe)
+│── argocd/                  # GitOps Application definitions
+│── monitoring/              # Prometheus/Grafana configs
+│── README.md                # Platform documentation
+```
+
+---
+
+## 🚀 Getting Started
+
+### 1. Local Development
+```bash
+# Clone the repo
+git clone https://github.com/bittush8789/bangalore-traffic-prediction-mlops.git
+cd bangalore-traffic-prediction-mlops
+
+# Setup environment
+python -m venv venv
+source venv/bin/activate  # venv\Scripts\activate on Windows
+pip install -r requirements.txt
+
+# Run pipeline
+python generate_data.py
+python train.py
+
+# Start FastAPI
+uvicorn app:app --reload
+```
+
+### 2. Docker Execution
+```bash
+docker build -t traffic-predictor .
+docker run -p 8000:8000 traffic-predictor
+```
+
+### 3. Kubernetes & ArgoCD Deployment
+1. Ensure `kubectl` is connected to your cluster.
+2. Install ArgoCD and apply the application manifest:
+   ```bash
+   kubectl apply -f argocd/application.yaml
+   ```
+3. ArgoCD will automatically deploy the **KServe InferenceService** defined in `k8s/inference.yaml`.
+
+---
+
+## 📡 API Endpoints
+
+- **Predict**: `POST /predict` - Real-time traffic inference.
+- **Health**: `GET /health` - Liveness/Readiness probe.
+- **Metrics**: `GET /metrics` - Prometheus metrics export.
+- **Docs**: `GET /docs` - Interactive Swagger documentation.
+
+---
+
+## 🧪 Experiment Tracking (MLflow)
+Experiments are logged locally (or to a remote tracking server). You can visualize metrics by running:
+```bash
+mlflow ui
+```
+
+---
+
+## 🛡️ Security & Scalability
+- **Secrets**: AWS credentials and model paths are handled via GitHub Secrets and K8s Secrets.
+- **Scalability**: KServe enables auto-scaling based on request volume (Serverless inference).
+- **Versioning**: DVC ensures data and model lineage are maintained.
 
 ---
 
 ## 🤝 Contributing
-
-We welcome contributions to help improve Bangalore's urban mobility!
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/NewRoute`)
-3. Commit your Changes (`git commit -m 'Add new route prediction'`)
-4. Push to the Branch (`git push origin feature/NewRoute`)
-5. Open a Pull Request
+Contributions are welcome! Please open an issue or pull request for any improvements.
 
 ---
-
-## 📜 License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
----
-**Crafted for a smarter, faster, and more efficient Bengaluru.** 🌆
+**Developed by [Your Name] | Dedicated to Scalable AI Solutions**
